@@ -1,7 +1,7 @@
 #ifndef SERVER_FUNC_H
 #define SERVER_FUNC_H
 
-#include "../server.type.h"
+#include "../../types/server.type.h"
 
 Server server_default();
 
