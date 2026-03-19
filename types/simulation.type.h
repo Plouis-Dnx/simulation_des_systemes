@@ -12,6 +12,7 @@ typedef struct {
     double temps; // Temps courant dans la simulation
     double instant_arrivee; // Instant de la prochaine arrivée d'une pièce
     double delta; // l'intervalle de temps entre deux événements successifs, utilisé pour mettre à jour les accumulateurs
+    int nb_pieces_en_attente; // nombre de pièces en attente dans la file, avant d'être traitées
 } SimState;
 
 typedef struct {

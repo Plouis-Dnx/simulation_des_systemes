@@ -8,65 +8,82 @@
 
 #include "../../types/resultat.type.h"
 
+void mise_a_jour_acc_stat(Simulation* simulation, Server* server, AccumulateurStat* acc_stat){
+    // Mise à jour des accumulateurs statistiques pour l'intervalle delta
+    acc_stat->temps_total += simulation->state.delta * (simulation->state.nb_pieces_en_attente + server->etat);
+    acc_stat->superficie_sous_qt += simulation->state.delta * simulation->state.nb_pieces_en_attente;
+    acc_stat->superficie_sous_bt += simulation->state.delta * server->etat;
+}
+
 void traiter_arrivee(Simulation* simulation, Server* server, AccumulateurStat* acc_stat) {
+    // Une pièce arrive dans le système -> On incrémente le nombre de pièces arrivées
     acc_stat->nb_pieces_arrivees++;
+
+    // Calcul de delta = temps écoulé entre le dernier événement et l'arrivée de cette pièce
     simulation->state.delta = simulation->state.instant_arrivee - simulation->state.temps;
+
+    // On avance l'horloge jusqu'à l'instant d'arrivée
     simulation->state.temps = simulation->state.instant_arrivee;
 
+    // Génération aléatoire d'un temps d'arrivée
     double inter_arrivee_a = simulation->config.temps_inter_arrivee_a;
     double inter_arrivee_b = simulation->config.temps_inter_arrivee_b;
     simulation->state.instant_arrivee = simulation->state.temps + generation_aleatoire(inter_arrivee_a, inter_arrivee_b);
 
-    acc_stat->temps_total += simulation->state.delta * (server->nb_pieces_en_attente + server->etat);
-    acc_stat->temps_attente_total += simulation->state.delta * server->nb_pieces_en_attente;
-    acc_stat->superficie_sous_bt += simulation->state.delta * server->etat;
+    mise_a_jour_acc_stat(simulation, server, acc_stat);
 
     if(server->etat == LIBRE) {
         //rendre le serveur occupe
         server->etat = OCCUPE;
+
         // programmer le nouveau depart
         double service_a = simulation->config.temps_service_a;
         double service_b = simulation->config.temps_service_b;
         server->instant_prochain_depart = simulation->state.temps + generation_aleatoire(service_a, service_b); 
     }
     else{ //serveur deja occupe
-        server->nb_pieces_en_attente++;
+        simulation->state.nb_pieces_en_attente++;
     }
 }
 
 void traiter_depart(Simulation* simulation, Server* server, AccumulateurStat* acc_stat) {
+    // Une pièce a été traitée -> On incrémente le nombre de pièces produites
     acc_stat->nb_pieces_produites++;
-    simulation->state.delta = server->instant_prochain_depart - simulation->state.temps;
-    simulation->state.temps = server->instant_prochain_depart;
-    acc_stat->temps_total += simulation->state.delta * (server->nb_pieces_en_attente + server->etat);
-    acc_stat->temps_attente_total += simulation->state.delta * server->nb_pieces_en_attente;
-    acc_stat->superficie_sous_bt += simulation->state.delta * server->etat;
 
-    if(server->nb_pieces_en_attente > 0) {
-        server->nb_pieces_en_attente--;
+    // Calcul de delta = temps écoulé entre le dernier événement et le départ de cette pièce
+    simulation->state.delta = server->instant_prochain_depart - simulation->state.temps;
+
+    // On avance l'horloge jusqu'au prochain événement
+    simulation->state.temps = server->instant_prochain_depart;
+
+    mise_a_jour_acc_stat(simulation, server, acc_stat);
+
+    if(simulation->state.nb_pieces_en_attente > 0) {
+        // On traite une pièce -> On décrémente le nombre de pièces en attente
+        simulation->state.nb_pieces_en_attente--;
+
         // Programmer le nouveau départ
         double service_a = simulation->config.temps_service_a;
         double service_b = simulation->config.temps_service_b;
         server->instant_prochain_depart = simulation->state.temps + generation_aleatoire(service_a, service_b); 
     }
-    else{ //il n'y a plus de pieces en attente
+    else{
+        // S'il n'y a aucune pièce en attente, alors le serveur est libre et le prochain départ est fixé à +INFINI
         server->etat = LIBRE;
         server->instant_prochain_depart = (double)RAND_MAX;
     }
 }
 
 Resultat calcul_fin_simulation(Simulation* simulation, Server* server, AccumulateurStat* acc_stat) {
+    // Calcul de delta = temps écoulé entre le temps de simulation max et le temps d'exécution de la simulation
     simulation->state.delta = simulation->config.temps_max - simulation->state.temps;
-    
-    acc_stat->temps_total += simulation->state.delta * (server->nb_pieces_en_attente + server->etat);
-    acc_stat->temps_attente_total += simulation->state.delta * server->nb_pieces_en_attente;
-    acc_stat->superficie_sous_bt += simulation->state.delta * server->etat;
-    
+
+    mise_a_jour_acc_stat(simulation, server, acc_stat);
 
     // Calcul des résultats
     Resultat resultat = {
         .temps_moyen_total = acc_stat->temps_total / acc_stat->nb_pieces_arrivees,
-        .temps_moyen_attente = acc_stat->temps_attente_total / acc_stat->nb_pieces_arrivees,
+        .temps_moyen_attente = acc_stat->superficie_sous_qt / acc_stat->nb_pieces_arrivees,
         .nb_moyen_pieces = acc_stat->temps_total / simulation->config.temps_max,
         .taux_occupation = acc_stat->superficie_sous_bt * 100 / simulation->config.temps_max,
         .taux_arrivee = (double)acc_stat->nb_pieces_arrivees / simulation->config.temps_max,

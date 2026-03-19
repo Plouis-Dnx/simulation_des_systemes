@@ -134,6 +134,7 @@ typedef struct {
     double temps; // Temps courant dans la simulation
     double instant_arrivee; // Instant de la prochaine arrivée d'une pièce
     double delta; // l'intervalle de temps entre deux événements successifs, utilisé pour mettre à jour les accumulateurs
+    int nb_pieces_en_attente; // nombre de pièces en attente dans la file, avant d'être traitées
 } SimState;
 
 typedef struct {
@@ -151,14 +152,12 @@ typedef struct {
 
 typedef struct {
     int nb_pieces_produites; // Le nombre de pièces produites
-    double temps_attente_total; // Temps total d’attente passé dans la file
     int nb_pieces_arrivees; // Nombre de pièces qui sont arrivées dans le système
-    double temps_maximum_file; // Le temps maximum passé dans la file
-    double temps_total; // Le temps total passé dans le système
-    double temps_maximum_systeme; //  Le temps maximum passé dans le système
-    double superficie_sous_qt;  // La superficie sous la courbe de longueur de la file Q(t)
-    int maximum_qt; // Le maximum de Q(t) 
-    double superficie_sous_bt; // La superficie sous la courbe d’occupation du serveur B(t)
+
+    double temps_total; // Le temps total passé dans le système 
+
+    double superficie_sous_qt; // Aire sous Q(t) = temps d'attente cumulé dans la file
+    double superficie_sous_bt; // Aire sous B(t) = temps d'occupation cumulé du serveur
 } AccumulateurStat;
 
 #endif // ACC_STAT_H
@@ -259,27 +258,54 @@ if(etat_serveur==0) {
 J'ai également ajouté des commentaire pour bien comprendre ce que font les fonctions et les algorithmes
 
 ##### Mon code
-*aleatoire.c*  
-```C title="aleatoire.c"
-void aleatoire_calibrage(Simulation simulation, int tirages) {
-    // Calibre le générateur aléatoire en estimant la moyenne des tirages
-    double somme = 0;
-    for (int i = 0; i < tirages; i++) 
-        somme += generation_aleatoire(simulation.config.temps_inter_arrivee_a, simulation.config.temps_inter_arrivee_b);
-    
-    printf("Valeur moyenne des temps générés aléatoirement : %lf\n", somme/tirages);
+*simulation.functions.c*  
+```C title="simulation.functions.c"
+void traiter_depart(Simulation* simulation, Server* server, AccumulateurStat* acc_stat) {
+    // Une pièce a été traitée -> On incrémente le nombre de pièces produites
+    acc_stat->nb_pieces_produites++;
+
+    // Calcul de delta = temps écoulé entre le dernier événement et le départ de cette pièce
+    simulation->state.delta = server->instant_prochain_depart - simulation->state.temps;
+
+    // On avance l'horloge jusqu'au prochain événement
+    simulation->state.temps = server->instant_prochain_depart;
+
+    mise_a_jour_acc_stat(simulation, server, acc_stat);
+
+    if(simulation->state.nb_pieces_en_attente > 0) {
+        // On traite une pièce -> On décrémente le nombre de pièces en attente
+        simulation->state.nb_pieces_en_attente--;
+
+        // Programmer le nouveau départ
+        double service_a = simulation->config.temps_service_a;
+        double service_b = simulation->config.temps_service_b;
+        server->instant_prochain_depart = simulation->state.temps + generation_aleatoire(service_a, service_b); 
+    }
+    else{
+        // S'il n'y a aucune pièce en attente, alors le serveur est libre et le prochain départ est fixé à +INFINI
+        server->etat = LIBRE;
+        server->instant_prochain_depart = (double)RAND_MAX;
+    }
 }
 ```
 
 ##### Code du professeur
 ```C
-for (i=0;i<10000;i++){
-    sum_tia=sum_tia+generer_inter_arrivee();
-    sum_ts=sum_ts+generer_tmps_service();
+// traitement d'un départ
+p++;
+delta=t_dep-t;
+t=t_dep;
+t_cum=t_cum+delta*(long_file+etat_serveur);
+t_att_cum=t_att_cum + delta*long_file;
+t_occ=t_occ + delta*etat_serve
+if(long_file>0) {
+    long_file--;
+    t_dep = t + generer_tmps_service(); // programmer le nouveau depart
 }
-
-printf("\n\nla val moyenne des temps inter-arr \t= %lf\n", sum_tia/10000);
-printf("la val moyenne des temps de service \t= %lf\n", sum_ts/10000);
+else{ //il n'y a plus de pieces en attente
+    etat_serveur=0;
+    t_dep = RAND_MAX;
+}
 ```
 
 ### Code Originel

@@ -29,7 +29,7 @@ Server server_default() {
     Server server = {
         .etat = LIBRE,
         .instant_prochain_depart = (double)RAND_MAX,
-        .nb_pieces_en_attente = 0
+        .nb_pieces_traitees = 0
     };
     
     return server;

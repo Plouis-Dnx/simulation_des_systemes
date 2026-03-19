@@ -8,8 +8,8 @@ typedef enum {
 
 typedef struct {
     ServerState etat; // 0 si libre, 1 si occupé
-    int nb_pieces_en_attente; // nombre de pièces en attente dans la file, avant d'être traitées
     double instant_prochain_depart; // instant du prochain départ de la pièce depuis le serveur
+    int nb_pieces_traitees; // Permet d'avoir un indicateur sur le nombre de pièces traitées par ce serveur
 } Server;
 
 #endif // SERVER_TYPE_H

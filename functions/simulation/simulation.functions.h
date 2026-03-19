@@ -5,7 +5,6 @@
 #include "../../types/acc_stat.type.h"
 #include "../../types/server.type.h"
 
-void afficher_config(Simulation); // Affiche la configuration acutelle de la simulation
 void do_simulation(Simulation*, Server*, AccumulateurStat*); // Lancement de la simulation
 
 #endif // SIM_FUNC_H

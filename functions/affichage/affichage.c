@@ -18,7 +18,7 @@ void afficher_resultats(const Simulation simulation, const Server server, const 
     printf("# Nombre de pièces arrivees : %d\n", acc_stat.nb_pieces_arrivees);
     printf("# Nombre de pièces produites : %d\n", acc_stat.nb_pieces_produites);
 
-    printf("# Nombre de pièces en attente : %d\n", server.nb_pieces_en_attente);
+    printf("# Nombre de pièces en attente : %d\n", simulation.state.nb_pieces_en_attente);
     printf("# Etat du serveur à T_MAX : %d\n", server.etat);
     
     printf("# [temps du prochain evenement - non simule : %.2lf]\n\n", 
