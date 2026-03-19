@@ -53,16 +53,15 @@ gcc main.c functions/*/*.c -o main && ./main
 ```
 
 ## Comment j'ai utilisé l'IA
-Dans ce projet, je me suis permis d'utiliser Claude afin de pouvoir mieux comprendre certains points du cours, comme par exemple à quoi servent certains accumulateurs statistiques et certaines variables du code proposé par le professeur.  
-Cela m'a également permis de construire une architecture propre et lisible de mon projet.
+Dans ce projet, je me suis permis d'utiliser Claude afin de pouvoir mieux comprendre certains points du cours, comme par exemple à quoi servent certains accumulateurs statistiques et certaines variables du code proposé par le professeur. Cela m'a également permis de construire une architecture propre et lisible de mon projet.
 
 ## Structure du Projet
-.
-├── functions/
-│   ├── affichage/
-│   ├── aleatoire/
-│   ├── defaults/
-│   └── simulation/
+.  
+├── functions/  
+│   ├── affichage/  
+│   ├── aleatoire/  
+│   ├── defaults/  
+│   └── simulation/  
 └── types/
 
 ## Comparaison avec le code du professeur
@@ -76,6 +75,7 @@ Mon objectif en le refactorisant était de réduire le grand nombre de variables
 Au lieu de a_ia, b_s, r, q, p, ..., j'ai opté pour des noms plus explicites comme (respectivement) temps_inter_arrivee_a, temps_service_b, random, nb_pieces_arrivees, nb_pieces_produites, ...
 
 ##### Mon code
+*aleatoire.c*  
 ```C title="aleatoire.c"
 double generation_aleatoire(double borne_inferieure, double borne_superieure) {
     // Génère un nombre aléatoire entre 2 bornes données
@@ -85,6 +85,7 @@ double generation_aleatoire(double borne_inferieure, double borne_superieure) {
 ```
 
 J'ai ensuite pu appeller cette fonction dans ```simulation.functions.c``` :  
+*simulation.functions.c*  
 ```C title="simulation.functions.c"
 void traiter_arrivee(...) {
     // ...
@@ -112,6 +113,7 @@ double generer_inter_arrivee(){
 Afin de mieux m'y retrouver, j'ai préféré créer des types pour stocker le grand nombre de variables et permettre de rendre mon code lisible et structuré.
 
 ##### Mon code
+*simulation.type.h*  
 ```C title="simulation.type.h"
 
 #ifndef SIMULATION_H
@@ -138,6 +140,7 @@ typedef struct {
 #endif // SIMULATION_H
 ```
 
+*acc_stat.type.h*  
 ```C title="acc_stat.type.h"
 #ifndef ACC_STAT_H
 #define ACC_STAT_H
@@ -157,6 +160,7 @@ typedef struct {
 #endif // ACC_STAT_H
 ```
 
+*resultat.type.h*  
 ```C title="resultat.type.h"
 #ifndef RESULTAT_H
 #define RESULTAT_H
@@ -200,13 +204,13 @@ int p = 0; //compteur du nombre de pieces produites
 Je me suis permis de séparer chaque partie du code en plusieurs fichiers en respectant le principe de responsabilité unique.
 
 ##### Mon code
-.
-├── main.c
-├── functions/...
-│   ├── affichage/...
-│   ├── aleatoire/...
-│   ├── defaults/...
-│   └── simulation/...
+.  
+├── main.c  
+├── functions/...  
+│   ├── affichage/...  
+│   ├── aleatoire/...  
+│   ├── defaults/...  
+│   └── simulation/...  
 └── types/...
 
 ##### Code du professeur
@@ -216,6 +220,7 @@ main.c
 Toujours pour une question de clarté du code, j'ai créé un type enum qui remplace les 0/1 du serveur pour connaître son état par LIBRE/OCCUPE
 
 ##### Mon Code
+*simulation.functions.c*  
 ```C title="simulation.functions.c"
 void traiter_arrivee(...){
     // ...
@@ -246,6 +251,7 @@ if(etat_serveur==0) {
 J'ai également ajouté des commentaire pour bien comprendre ce que font les fonctions et les algorithmes
 
 ##### Mon code
+*aleatoire.c*  
 ```C title="aleatoire.c"
 void aleatoire_calibrage(Simulation simulation, int tirages) {
     // Calibre le générateur aléatoire en estimant la moyenne des tirages
