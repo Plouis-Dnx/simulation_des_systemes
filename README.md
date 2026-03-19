@@ -16,9 +16,10 @@ Afin de correctement architecturer mon projet, j'ai créé plusieurs types qui p
 
  - **Resultat** : Afin d'avoir un code propre, les variables de ce type sont calculées dans une fonction. Cela évite également d'avoir une multitude de paramètres dans la fonction d'affichage des résultats.
 
-Le fichier types.h permet de réunir tous ces types afin de pouvoir tous les appeler en une seule ligne : 
+Le fichier types.h permet de réunir tous ces types afin de pouvoir tous les appeler en une seule ligne :  
+
+*affichage.h*
 ```C
-// Exemple : functions/affichage/affichage.h
 #ifndef AFFICHAGE_H
 #define AFFICHAGE_H
 
@@ -56,6 +57,7 @@ gcc main.c functions/*/*.c -o main && ./main
 Dans ce projet, je me suis permis d'utiliser Claude afin de pouvoir mieux comprendre certains points du cours, comme par exemple à quoi servent certains accumulateurs statistiques et certaines variables du code proposé par le professeur. Cela m'a également permis de construire une architecture propre et lisible de mon projet.
 
 ## Structure du Projet
+```bash
 .  
 ├── functions/  
 │   ├── affichage/  
@@ -63,6 +65,7 @@ Dans ce projet, je me suis permis d'utiliser Claude afin de pouvoir mieux compre
 │   ├── defaults/  
 │   └── simulation/  
 └── types/
+```
 
 ## Comparaison avec le code du professeur
 
@@ -84,7 +87,8 @@ double generation_aleatoire(double borne_inferieure, double borne_superieure) {
 }
 ```
 
-J'ai ensuite pu appeller cette fonction dans ```simulation.functions.c``` :  
+J'ai ensuite pu appeller cette fonction dans ```simulation.functions.c``` :   
+
 *simulation.functions.c*  
 ```C title="simulation.functions.c"
 void traiter_arrivee(...) {
@@ -204,6 +208,7 @@ int p = 0; //compteur du nombre de pieces produites
 Je me suis permis de séparer chaque partie du code en plusieurs fichiers en respectant le principe de responsabilité unique.
 
 ##### Mon code
+```bash
 .  
 ├── main.c  
 ├── functions/...  
@@ -212,9 +217,12 @@ Je me suis permis de séparer chaque partie du code en plusieurs fichiers en res
 │   ├── defaults/...  
 │   └── simulation/...  
 └── types/...
+```
 
 ##### Code du professeur
+```bash
 main.c
+```
 
 #### 4. Creation d'un type enum pour les serveurs
 Toujours pour une question de clarté du code, j'ai créé un type enum qui remplace les 0/1 du serveur pour connaître son état par LIBRE/OCCUPE
